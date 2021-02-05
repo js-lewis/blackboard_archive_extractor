@@ -58,12 +58,13 @@ class BlackboardArchiveExtractor:
         self._target = target
 
 
-    def get_submissions(self, path="", file_filter="*.zip"):
+    def get_submissions(self, source="", file_filter="*.zip"):
         """Method docstring"""
         # compile regex for fname parsing
         dfa = re.compile(BlackboardArchiveExtractor.__REGEX)
 
-        for fname in glob.glob(path + file_filter):  # get list of files
+        path = os.path.join(source, file_filter)
+        for fname in glob.glob(path):  # get list of files
             matches = dfa.match(fname)  # parse name
             assert matches.lastindex == 2  # sanity check
 
@@ -79,7 +80,7 @@ class BlackboardArchiveExtractor:
         return self._submissions
 
 
-    def extract_files(
+    def extract_file(
             self, archive, expected, exact=False, pre=""):
         """
         Extracts files from archive into target directory
@@ -137,13 +138,13 @@ class BlackboardArchiveExtractor:
 
 
 
-    def extract_into_dir(self, files: list, path=""):
+    def extract_into_dir(self, files: list, source=""):
         """method docstring"""
-        archives = self.get_submissions(path)
+        archives = self.get_submissions(source)
         for username in archives:
             for fname in files:
                 try:
-                    self.extract_files(
+                    self.extract_file(
                         archives[username]['archive'], fname, False,
                         f"{username}_")
                 except FileNotFoundError as error:
@@ -152,14 +153,14 @@ class BlackboardArchiveExtractor:
 
 def main():
     """Function docstring"""
-    usage = """proc_name <make_dir> <file_path> <file0>, ... <file_n>"""
+    usage = """proc_name <source_dir> <target_dir> <file0>, ... <file_n>"""
 
     if len(sys.argv) < 4:
         print(usage)
         return
 
-    extractor = BlackboardArchiveExtractor(sys.argv[1])
-    extractor.extract_into_dir(sys.argv[3:len(sys.argv)], sys.argv[2])
+    extractor = BlackboardArchiveExtractor(sys.argv[2])
+    extractor.extract_into_dir(sys.argv[3:len(sys.argv)], sys.argv[1])
 
 
 if __name__ == "__main__":
